@@ -12,18 +12,15 @@ const tiempoInicial = prompt(
 );
 let tiempoRestante = tiempoInicial;
 let temporizador;
+let tiempoAgotado = false;
 
 function verificarRespuesta(tiempoAgotado = false) {
   const respuestaUsuario = obtenerRespuestaUsuario(tiempoAgotado);
   const resultadoElement = document.querySelector(".texto__parrafo");
 
   if (validarEntrada(tiempoAgotado, respuestaUsuario, resultadoElement)) {
-    actualizarInterfaz();
     return;
   }
-
-  clearInterval(temporizador);
-  tiempoAgotado = false;
 
   let esCorrecta;
   if (tipoDivision === "restos") {
@@ -43,6 +40,8 @@ function verificarRespuesta(tiempoAgotado = false) {
   } else {
     esCorrecta = respuestaUsuario === respuestaCorrecta;
   }
+
+  clearInterval(temporizador);
 
   if (esCorrecta) {
     manejarRespuestaCorrecta(resultadoElement);
@@ -81,7 +80,7 @@ function validarEntrada(tiempoAgotado, respuestaUsuario, resultadoElement) {
         agitarContenedor();
         return true;
       }
-    } else if (isNaN(respuestaUsuario)) {
+    } else if (isNaN(respuestaUsuario) || respuestaUsuario === "") {
       resultadoElement.textContent = "⛔ Debes ingresar un número ⛔";
       resultadoElement.style.color = "red";
       agitarContenedor();
@@ -180,6 +179,7 @@ function deshabilitarControles() {
   document.getElementById("reiniciar").disabled = false;
   document.getElementById("intentoBoton").disabled = true;
   document.getElementById("valorUsuario").disabled = true;
+  document.getElementById("restoUsuario").disabled = true;
 }
 
 function ajustarPuntaje(puntos) {
@@ -219,9 +219,18 @@ function reiniciarJuego() {
   ocultarHistorial();
   reiniciarTemporizador();
   actualizarPuntajeEnPantalla();
+  habilitarControles();
   enfocarInputUsuario();
   document.getElementById("valorUsuario").value = "";
   document.getElementById("restoUsuario").value = "";
+}
+
+function habilitarControles() {
+  document.getElementById("reiniciar").disabled = true;
+  document.getElementById("intentoBoton").disabled = false;
+  document.getElementById("valorUsuario").disabled = false;
+  document.getElementById("restoUsuario").disabled = false;
+  actualizarInterfazDivision(); // Esto asegura que el input de resto se muestre/oculte según sea necesario
 }
 
 function reiniciarVariables() {
@@ -245,6 +254,8 @@ function actualizarEstadoBotones() {
   document.getElementById("reiniciar").disabled = true;
   document.getElementById("intentoBoton").disabled = false;
   document.getElementById("valorUsuario").disabled = false;
+  document.getElementById("restoUsuario").disabled = false;
+  actualizarInterfazDivision();
 }
 
 function reiniciarElementosJuego() {
@@ -429,7 +440,7 @@ function actualizarInterfazNuevoNivel() {
   reiniciarJuego();
   actualizarPuntajeEnPantalla();
 }
-let tiempoAgotado = false;
+
 function actualizarTemporizador() {
   const temporizadorElement = document.getElementById("temporizador");
   const resultadoElement = document.querySelector(".texto__parrafo");
@@ -488,7 +499,7 @@ function generarDivision(tipoDivision) {
     return { dividendo, divisor, cociente };
   } else {
     const restoMaximo = divisor - 1; // El resto máximo posible
-    const resto = Math.floor(Math.random() * restoMaximo) + 1; // Genera un resto entre 1 y (divisor - 1)
+    const resto = Math.floor(Math.random() * (restoMaximo + 1)); // Genera un resto entre 0 y (divisor - 1)
     return { dividendo: dividendo + resto, divisor, cociente, resto };
   }
 }
